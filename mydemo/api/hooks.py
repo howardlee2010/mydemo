@@ -13,26 +13,13 @@
 # under the License.
 
 
-import pecan
+from pecan import hooks
 
-from mydemo.api import config as api_config
-from mydemo.api import hooks
+from mydemo.db import api as db_api
 
 
-def get_pecan_config():
-    filename = api_config.__file__.replace('.pyc', '.py')
-    return pecan.configuration.conf_from_file(filename)
+class DBHook(hooks.PecanHook):
+    """Create a db connection instance."""
 
-def setup_app():
-    config = get_pecan_config()
-
-    app_hooks = [hooks.DBHook()]
-    app_conf = dict(config.app)
-    app = pecan.make_app(
-        app_conf.pop('root'),
-        logging=getattr(config, 'logging', {}),
-        hooks=app_hooks,
-        **app_conf
-    )
-
-    return app
+    def before(self, state):
+        state.request.db_conn = db_api.Connection()

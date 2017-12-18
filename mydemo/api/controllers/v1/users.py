@@ -22,9 +22,10 @@ from mydemo.api import expose
 
 
 class User(wtypes.Base):
-    id = wtypes.text
+    id = int
+    user_id = wtypes.text
     name = wtypes.text
-    age = int
+    email = wtypes.text
 
 class Users(wtypes.Base):
     users = [User]
@@ -64,18 +65,16 @@ class UsersController(rest.RestController):
 
     @expose.expose(Users)
     def get(self):
-        user_info_list = [
-            {
-                'name': 'Alice',
-                'age': 30,
-            },
-            {
-                'name': 'Bob',
-                'age': 40,
-            }
-         ]
-
-        users_list = [User(**user_info) for user_info in user_info_list]
+        db_conn = request.db_conn
+        users = db_conn.list_users()
+        users_list = []
+        for user in users:
+            u = User()
+            u.id = user.id
+            u.user_id = user.user_id
+            u.name = user.name
+            u.email = user.email
+            users_list.append(u)
         return Users(users=users_list)
 
     @expose.expose(None, body=User, status_code=201)

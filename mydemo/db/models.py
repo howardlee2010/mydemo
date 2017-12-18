@@ -13,26 +13,20 @@
 # under the License.
 
 
-import pecan
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext import declarative
+from sqlalchemy import Index
 
-from mydemo.api import config as api_config
-from mydemo.api import hooks
+Base = declarative.declarative_base()
 
+class User(Base):
+    """User table"""
 
-def get_pecan_config():
-    filename = api_config.__file__.replace('.pyc', '.py')
-    return pecan.configuration.conf_from_file(filename)
-
-def setup_app():
-    config = get_pecan_config()
-
-    app_hooks = [hooks.DBHook()]
-    app_conf = dict(config.app)
-    app = pecan.make_app(
-        app_conf.pop('root'),
-        logging=getattr(config, 'logging', {}),
-        hooks=app_hooks,
-        **app_conf
+    __tablename__ = 'user'
+    __table_args__ = (
+        Index('ix_user_user_id', 'user_id'),
     )
-
-    return app
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String(255), nullable=False)
+    name = Column(String(64), nullable=False, unique=True)
+    email = Column(String(255))
